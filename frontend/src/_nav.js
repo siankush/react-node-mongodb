@@ -47,7 +47,7 @@ const _nav = [
   {
     component: CNavItem,
     name: <Translation>{(t) => t('companies')}</Translation>,
-    to: '/theme/typography',
+    to: '/companies',
     icon: <CIcon icon={cilLibraryBuilding} customClassName="nav-icon" />,
   },
   // {

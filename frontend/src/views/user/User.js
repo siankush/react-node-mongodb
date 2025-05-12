@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import axios from 'axios';
 
 import {
+  CButton,
   CCard,
   CCardBody,
   CCardHeader,
@@ -17,6 +18,10 @@ import {
   CTableHead,
   CTableHeaderCell,
   CTableRow,
+  CToast,
+  CToastBody,
+  CToastHeader,
+  CToaster,
 } from '@coreui/react-pro'
 import CIcon from '@coreui/icons-react';
 import { cilPencil } from '@coreui/icons';
@@ -36,18 +41,23 @@ const User = () => {
     const [users, setUsers] = useState([]);
     const [userColumns, setUserColumns] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
-
-    // const [visible, setVisible] = useState(false);
-    // const [formData, setFormData] = useState({ username: '', email: '' });
-
-    // const handleOpen = () => setVisible(true);
-    // const handleClose = () => setVisible(false);
     const [showModal, setShowModal] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [viewUser, setViewUser] = useState(null);
+    const [toastList, setToastList] = useState([]);
     const navigate = useNavigate();
-  
+
+    const showToast = (title, message, color = 'success') => {
+      const toast = (
+        <CToast key={Date.now()} className={`text-white bg-${color}`} delay={3000} autohide>
+          <CToastHeader closeButton>{title}</CToastHeader>
+          <CToastBody>{message}</CToastBody>
+        </CToast>
+      );
+      setToastList((prev) => [...prev, toast]);
+    };
+    
 
     const handleView = (user) => {
       setViewUser(user);
@@ -58,14 +68,34 @@ const User = () => {
       // Add user logic
       console.log('add');
     };
-
+    
     const handleEdit = (user) => {
-        setIsEditMode(true); // set to edit mode
-        setSelectedUser(user);
-        setEditForm({ username: user.username, email: user.email, password: '' });
-        setShowModal(true);
+      setIsEditMode(true); // set to edit mode
+      setSelectedUser(user);
+      setFormData({ username: user.username, email: user.email, password: '' });
+      setShowModal(true);
     };
+    
+    const handleUpdateUser = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const res = await axios.put(
+          `http://localhost:5000/api/auth/users/${selectedUser._id}`,
+          formData,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+    
+        setUsers((prev) =>
+          prev.map((u) => (u._id === selectedUser._id ? res.data : u))
+        )
+        setShowModal(false)
+        showToast('Success', 'User added successfully!', 'success');
+      } catch (err) {
+        console.error(err)
 
+      }
+    }
+    
 
     const handleDelete = async (id) => {
       console.log(id);
@@ -82,7 +112,15 @@ const User = () => {
           console.error(err);
       };
     }
-      
+
+    const handleCloseModal = () => {
+      setShowModal(false);
+      setFormData({ username: '', email: '', password: '' });
+      setIsEditMode(false);
+      setSelectedUser(null);
+    };
+
+
     useEffect(() => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -116,6 +154,14 @@ const User = () => {
           navigate('/login');
         }
       });
+
+      // setTimeout(() => {
+      //   showToast({
+      //     title: 'Test',
+      //     message: 'Now the ref is ready!',
+      //   })
+      // }, 1000) // Enough delay for CToaster to mount
+
     }, [navigate]);
   
     return (
@@ -151,7 +197,7 @@ const User = () => {
 
       <CustomModal
         visible={showModal}
-        // onClose={handleCloseModal}
+        onClose={handleCloseModal}
         title={isEditMode ? 'Edit User' : 'Add User'}
         onSubmit={isEditMode ? handleUpdateUser : handleAddUser}
         submitLabel={isEditMode ? 'Save Changes' : 'Add User'}
@@ -194,6 +240,28 @@ const User = () => {
           )}
         </CForm>
       </CustomModal>
+
+      {/* Display the toast messages */}
+      <CToaster position="top-end">
+        {toastList}
+      </CToaster>
+      {/* {toast && toaster.current?.push(toaster)} */}
+      
+      {/* <CButton color="primary" onClick={() => addToast(exampleToast)}>
+        Send a toast
+      </CButton>
+      <CToaster className="p-3" placement="top-end" push={toast} ref={toaster} /> */}
+
+      {/* <CToaster position="top-end">
+        {toastVisible && (
+          <CustomToast
+            title="Success"
+            message="User updated successfully!"
+            timestamp="Now"
+            color="#198754" // green
+          />
+        )}
+      </CToaster> */}
 
       {/* Modal */}
       <EntityViewModal

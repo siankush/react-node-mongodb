@@ -32,7 +32,8 @@ const Tables = ({ columns, data, onActions }) => {
         </CTableRow>
       </CTableHead>
       <CTableBody>
-        {data.map((row, rowIndex) => (
+      {Array.isArray(data) && data.length > 0 ? (
+        data.map((row, rowIndex) => (
           <CTableRow key={row._id || rowIndex}>
             <CTableHeaderCell scope="row">{rowIndex + 1}</CTableHeaderCell>
             {columns.map((col, colIndex) => (
@@ -42,10 +43,17 @@ const Tables = ({ columns, data, onActions }) => {
             ))}
             <CTableDataCell>{onActions(row)}</CTableDataCell>
           </CTableRow>
-        ))}
+        ))
+      ) : (
+        <CTableRow>
+        <CTableDataCell colSpan={columns.length + 2} className="text-center text-muted">
+          No companies found
+        </CTableDataCell>
+      </CTableRow>
+      )}
       </CTableBody>
     </CTable>
-  )
-}
+  );
+};
 
 export default Tables

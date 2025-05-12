@@ -68,6 +68,7 @@ const Widgets = React.lazy(() => import('./views/widgets/Widgets'))
 
 const Invoice = React.lazy(() => import('./views/apps/invoicing/Invoice'))
 const Users = React.lazy(() => import('./views/user/User'))
+const Companies = React.lazy(() => import('./views/company/Company'))
 
 const routes = [
   { path: '/', exact: true, name: <Translation>{(t) => t('home')}</Translation> },
@@ -195,6 +196,11 @@ const routes = [
     path: '/users',
     name: <Translation>{(t) => t('user')}</Translation>,
     element: Users,
+  },
+  {
+    path: '/companies',
+    name: <Translation>{(t) => t('company')}</Translation>,
+    element: Companies,
   },
 ]
 
