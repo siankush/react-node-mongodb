@@ -1,5 +1,6 @@
 const express = require('express');
 const Company = require('../models/Company'); // your mongoose model
+const User = require('../models/User'); // your mongoose model
 const router = express.Router();
 const jwt = require('jsonwebtoken');  // Make sure this is at the top
 
@@ -29,12 +30,24 @@ router.get('/', async (req, res) => {
       console.log('Token verification error:', error);
       return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
-    // Fetch companies where createdBy matches logged-in user's ID and is not deleted
-    const companies = await Company.find({
-      isDeleted: false,
-      createdBy: decoded.id,
-    });
 
+    // Find user to check role
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    let companies;
+    if (user.role === 'admin') {
+      // Admin gets all companies
+      companies = await Company.find({ isDeleted: false });
+    } else {
+      // Non-admin gets only their own companies
+      companies = await Company.find({
+        isDeleted: false,
+        createdBy: decoded.id,
+      });
+    }
     res.status(200).json(companies);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching companies', error: err });

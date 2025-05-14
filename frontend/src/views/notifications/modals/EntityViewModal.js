@@ -17,7 +17,7 @@ import {
     CTooltip,
   } from '@coreui/react-pro'
 
-const EntityViewModal = ({ visible, onClose, entity, fields, title }) => {
+const EntityViewModal = ({ visible, onClose, entity, fields, title, columnLabels = {} }) => {
   return (
     <CModal alignment="center" backdrop="static" visible={visible} onClose={onClose}>
       <CModalHeader>
@@ -27,7 +27,7 @@ const EntityViewModal = ({ visible, onClose, entity, fields, title }) => {
         {entity ? (
           fields.map((field) => (
             <p key={field}>
-              <strong>{field}:</strong> {entity[field]}
+              <strong>{columnLabels[field] || field}:</strong> {entity[field]}
             </p>
           ))
         ) : (

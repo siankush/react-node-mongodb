@@ -36,14 +36,20 @@ router.post('/login', async (req, res) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
-  const token = jwt.sign({ id: user._id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
   res.json({ token, username: user.username });
 });
 
 // Dashboard - list all users (protected)
 router.get('/dashboard', authMiddleware, async (req, res) => {
   try {
-    const users = await User.find({ isDeleted: 0 }, '-password'); // filter by isDeleted = 0, exclude password
+    let users;
+    const loggedInUser = req.user;
+    if(loggedInUser.role === 'admin') {
+      users = await User.find({ isDeleted: false }, '-password'); // filter by isDeleted = 0, exclude password
+    } else {
+      users = await User.find({ isDeleted: false, role: { $ne: 'admin' } }, '-password');
+    }
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: err.message });

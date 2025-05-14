@@ -47,6 +47,12 @@ const User = () => {
     const [viewUser, setViewUser] = useState(null);
     const [toastList, setToastList] = useState([]);
     const navigate = useNavigate();
+    const userColumnLabels = {
+      username: 'Username',
+      email: 'Email',
+    };
+    const [authId, setAuthId] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const showToast = (title, message, color = 'success') => {
       const toast = (
@@ -98,7 +104,6 @@ const User = () => {
     
 
     const handleDelete = async (id) => {
-      console.log(id);
         const confirmDelete = window.confirm('Are you sure you want to delete this user?');
         if (!confirmDelete) return;
         try {
@@ -123,8 +128,11 @@ const User = () => {
 
     useEffect(() => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, redirecting to login');
+      if(token) {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setAuthId(decoded.id);            // Store logged-in user's ID
+        setIsAdmin(decoded.role === 'admin');
+      } else {
         navigate('/login');
         return;
       }
@@ -137,7 +145,6 @@ const User = () => {
       .then((res) => {
         const data = res.data;
         setUsers(data);
-        console.log(data);
         setUserColumns(['username', 'email']);
         // Show all column from database
         // if (data.length > 0) {
@@ -150,7 +157,6 @@ const User = () => {
         console.error(err);
         // Redirect to login on 400 or 401 errors
         if (err.response && (err.response.status === 400 || err.response.status === 401)) {
-          console.log('Invalid or expired token, redirecting to login');
           navigate('/login');
         }
       });
@@ -181,14 +187,19 @@ const User = () => {
                         <path fill="currentColor" d="M572.52 241.4c-1.51-1.95-37.48-48.1-93.12-86.1C428.52 123.4 375.78 96 288 96S147.48 123.4 96.6 155.3c-55.64 38-91.61 84.15-93.12 86.1a48.37 48.37 0 0 0 0 29.2c1.51 1.95 37.48 48.1 93.12 86.1C147.48 388.6 200.22 416 288 416s140.52-27.4 191.4-59.3c55.64-38 91.61-84.15 93.12-86.1a48.37 48.37 0 0 0 0-29.2zM288 368c-70.69 0-128-57.31-128-128s57.31-128 128-128 128 57.31 128 128-57.31 128-128 128zm0-208a80 80 0 1 0 80 80 80.09 80.09 0 0 0-80-80z"/>
                       </svg>
                     </button>
+                    {(isAdmin || user._id === authId) && (
                     <button onClick={() => handleEdit(user)} className="btn btn-sm btn-warning me-2">
                       <CIcon icon={cilPencil} />
                     </button>
+                    )}
+                    {isAdmin && (
                     <button onClick={() => handleDelete(user._id)} className="btn btn-sm btn-danger">
                       <CIcon icon={cilTrash} />
                     </button>
+                    )}
                   </>
                 )}
+                columnLabels={userColumnLabels}
               />
             </CCardBody>
           </CCard>
@@ -270,6 +281,7 @@ const User = () => {
         entity={viewUser}
         fields={userColumns}
         title="User Details"
+        columnLabels={userColumnLabels}
       />
       </>
     );

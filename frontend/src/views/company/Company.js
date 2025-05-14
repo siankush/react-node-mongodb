@@ -33,7 +33,6 @@ import EntityViewModal from '../notifications/modals/EntityViewModal';
 import CustomModal from '../notifications/modals/CustomModal';
 
 const Company = () => {
-    const [show, setShow] = useState(false);
     const [formData, setFormData] = useState({
       name: '',
       industry: '',
@@ -51,7 +50,15 @@ const Company = () => {
     const [viewCompany, setViewCompany] = useState(null);
     const [toastList, setToastList] = useState([]);
     const navigate = useNavigate();
-
+    const companyColumnLabels = {
+      name: 'Name',
+      industry: 'Industry',
+      website: 'Website',
+      phone: 'Phone',
+      address: 'Address'
+    };
+    const [isAdmin, setIsAdmin] = useState(false);
+    
     const handleView = (company) => {
       setViewCompany(company);
       setModalVisible(true);
@@ -131,8 +138,10 @@ const Company = () => {
 
     useEffect(() => {
       const token = localStorage.getItem('token');
-      if (!token) {
-        console.log('No token found, redirecting to login');
+      if(token) {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setIsAdmin(decoded.role === 'admin');
+      } else {
         navigate('/login');
         return;
       }
@@ -151,7 +160,6 @@ const Company = () => {
         console.error(err);
         // Redirect to login on 400 or 401 errors
         if (err.response && (err.response.status === 400 || err.response.status === 401)) {
-          console.log('Invalid or expired token, redirecting to login');
           navigate('/login');
         }
       });
@@ -185,11 +193,14 @@ const Company = () => {
                     <button onClick={() => handleEdit(company)} className="btn btn-sm btn-warning me-2">
                       <CIcon icon={cilPencil} />
                     </button>
+                    { isAdmin && (
                     <button onClick={() => handleDelete(company._id)} className="btn btn-sm btn-danger">
                       <CIcon icon={cilTrash} />
                     </button>
+                    )}
                   </>
                 )}
+                columnLabels={companyColumnLabels}
               />
             </CCardBody>
           </CCard>
@@ -274,6 +285,7 @@ const Company = () => {
         entity={viewCompany}
         fields={companyColumns}
         title="Company Details"
+        columnLabels={companyColumnLabels}
       />
       </>
     );

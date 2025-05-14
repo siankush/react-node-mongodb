@@ -19,14 +19,14 @@ import { cilPencil } from '@coreui/icons';
 import { DocsComponents, DocsExample } from 'src/components'
 import { useNavigate } from 'react-router-dom';
 
-const Tables = ({ columns, data, onActions }) => {
+const Tables = ({ columns, data, onActions, columnLabels = {} }) => {
   return (
     <CTable striped hover>
       <CTableHead>
         <CTableRow>
           <CTableHeaderCell scope="col">#</CTableHeaderCell>
           {columns.map((col, colIndex) => (
-            <CTableHeaderCell scope="col" key={colIndex}>{col}</CTableHeaderCell>
+            <CTableHeaderCell scope="col" key={colIndex}>{columnLabels[col] || col} </CTableHeaderCell>
           ))}
           <CTableHeaderCell scope="col">Action</CTableHeaderCell>
         </CTableRow>

@@ -20,6 +20,8 @@ import { useNavigate } from 'react-router-dom'
 const WidgetsDropdown = (props) => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [monthlyCounts, setMonthlyCounts] = useState(new Array(7).fill(0))
+  const [totalCompanies, setTotalCompanies] = useState(0);
+  const [monthlyCompanyCounts, setMonthlyCompanyCounts] = useState(new Array(7).fill(0))
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +30,8 @@ const WidgetsDropdown = (props) => {
       navigate('/login');
       return;
     }
+
+    // Fetch the users data 
     axios.get('http://localhost:5000/api/auth/dashboard', {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -47,11 +51,42 @@ const WidgetsDropdown = (props) => {
             }
           }
         })
-
         setMonthlyCounts(counts)
     })
     .catch((error) => {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching user data:', error);
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
+        navigate('/login');
+      }
+    });
+
+    // Fetch the companies data 
+    axios.get('http://localhost:5000/api/companies', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((response) => {
+      const companies = response.data; // Store response data in a variable
+      setTotalCompanies(companies.length);
+      const companycounts = new Array(7).fill(0)
+
+      companies.forEach((company) => {
+          if (company.createdAt) {
+            const createdDate = new Date(company.createdAt)
+            const month = createdDate.getMonth()
+            if (month >= 0 && month <= 6) {
+              companycounts[month]++
+            }
+          }
+        })
+      setMonthlyCompanyCounts(companycounts)
+    })
+    .catch((error) => {
+      console.error('Error fetching user data:', error);
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
+        navigate('/login');
+      }
     });
   }, []);
 
@@ -121,7 +156,7 @@ const WidgetsDropdown = (props) => {
                 ],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Users count',
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-primary'),
@@ -149,8 +184,8 @@ const WidgetsDropdown = (props) => {
                     },
                   },
                   y: {
-                    min: 30,
-                    max: 89,
+                    min: -9,
+                    max: 39,
                     display: false,
                     grid: {
                       display: false,
@@ -181,13 +216,13 @@ const WidgetsDropdown = (props) => {
           color="info-gradient"
           value={
             <>
-              $6.200{' '}
+              {totalCompanies}{' '}
               <span className="fs-6 fw-normal">
-                (40.9% <CIcon icon={cilArrowTop} />)
+                {/* (40.9% <CIcon icon={cilArrowTop} />) */}
               </span>
             </>
           }
-          title={t('income')}
+          title={t('Companies')}
           action={
             <CDropdown alignment="end">
               <CDropdownToggle color="transparent" caret={false} className="text-white p-0">
@@ -218,11 +253,11 @@ const WidgetsDropdown = (props) => {
                 ],
                 datasets: [
                   {
-                    label: 'My First dataset',
+                    label: 'Companies count',
                     backgroundColor: 'transparent',
                     borderColor: 'rgba(255,255,255,.55)',
                     pointBackgroundColor: getStyle('--cui-info'),
-                    data: [1, 18, 9, 17, 34, 22, 11],
+                    data: monthlyCompanyCounts,
                   },
                 ],
               }}
